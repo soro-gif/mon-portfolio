@@ -1,0 +1,8 @@
+node_modules/
+dist/
+frontend/dist/
+backend/vendor/
+backend/.env
+frontend/.env
+.env
+.DS_Store
