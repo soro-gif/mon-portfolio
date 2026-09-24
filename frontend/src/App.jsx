@@ -1,6 +1,7 @@
 import { useMemo, useState, useEffect, useRef } from 'react';
 import { motion, useInView } from 'framer-motion';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import SkillBadge from './SkillBadge';
 
 
 import {
@@ -191,6 +192,7 @@ function App() {
   );
 
   const navItems = [
+    { label: 'Accueil', href: '#home' },
     { label: 'À propos', href: '#about' },
     { label: 'Compétences', href: '#skills' },
     { label: 'Expérience', href: '#experience' },
@@ -235,7 +237,13 @@ function App() {
       <header className="topbar">
         <div className="container nav-shell">
           <div className="brand-block">
-            <div className="brand">SORO</div>
+            <a 
+              href="#" 
+              className="brand"
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              SORO
+            </a>
             <span className="brand-tag">Data & IA</span>
           </div>
 
@@ -271,6 +279,7 @@ function App() {
 
       <main>
         <motion.section 
+          id="home"
           className="hero"
           initial="hidden"
           whileInView="visible"
@@ -404,9 +413,7 @@ function App() {
                   <h4>{group}</h4>
                   <div className="tags">
                     {values.map((value) => (
-                      <span key={value} className="tag">
-                        {value}
-                      </span>
+                      <SkillBadge key={value} name={value} />
                     ))}
                   </div>
                 </motion.div>
