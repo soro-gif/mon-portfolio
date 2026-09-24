@@ -34,28 +34,32 @@ class PortfolioController extends Controller
                 'category' => 'IA générative',
                 'description' => 'Conception et développement d’une solution d’IA générative capable de produire des résumés et interprétations de projets de loi adaptés à différents publics.',
                 'technologies' => ['Python', 'Generative AI', 'Machine Learning', 'NLP', 'LLM', 'Prompt Engineering'],
-                'link' => '#',
+                'link' => 'https://github.com/soro-gif',
+                'image' => 'https://images.unsplash.com/photo-1677442136019-21780ecad995?auto=format&fit=crop&w=1200&q=80'
             ],
             [
                 'title' => 'NeuroCodeurs',
                 'category' => 'Hackathon IA',
                 'description' => 'Système intelligent de génération de contenu personnalisé basé sur l’intelligence artificielle.',
                 'technologies' => ['Python', 'Generative AI', 'Machine Learning', 'Data Analysis', 'Data Visualization', 'EDA', 'Git', 'GitHub'],
-                'link' => '#',
+                'link' => 'https://github.com/soro-gif',
+                'image' => 'https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&w=1200&q=80'
             ],
             [
                 'title' => 'Site e-commerce de vente de vêtements',
                 'category' => 'Laravel / E-commerce',
                 'description' => 'Conception et développement d’un site e-commerce de vente de vêtements avec Laravel.',
                 'technologies' => ['Laravel', 'Blade', 'JavaScript', 'Bootstrap CSS', 'PHP', 'MySQL'],
-                'link' => '#',
+                'link' => 'https://github.com/soro-gif',
+                'image' => 'https://images.unsplash.com/photo-1524758631624-e2822e304c36?auto=format&fit=crop&w=1200&q=80'
             ],
             [
                 'title' => 'Application de gestion de garage',
                 'category' => 'Gestion d’entreprise',
                 'description' => 'Application web de gestion de garage et de véhicules avec Laravel.',
                 'technologies' => ['Laravel', 'Blade', 'PHP', 'MySQL', 'HTML/CSS'],
-                'link' => '#',
+                'link' => 'https://github.com/soro-gif',
+                'image' => 'https://images.unsplash.com/photo-1552664730-d307ca884978?auto=format&fit=crop&w=1200&q=80'
             ],
         ]);
     }
@@ -104,6 +108,7 @@ class PortfolioController extends Controller
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:120',
             'email' => 'required|email',
+            'subject' => 'required|string|max:150',
             'message' => 'required|string|min:10',
         ]);
 
@@ -112,6 +117,15 @@ class PortfolioController extends Controller
                 'success' => false,
                 'errors' => $validator->errors(),
             ], 422);
+        }
+
+        try {
+            \Illuminate\Support\Facades\Mail::to('sorolamoussa1212@gmail.com')->send(new \App\Mail\ContactMessage($request->all()));
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'errors' => ['server' => ['Impossible d\'envoyer l\'email pour le moment. Veuillez réessayer plus tard.']]
+            ], 500);
         }
 
         return response()->json([

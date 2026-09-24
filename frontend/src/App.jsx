@@ -1,4 +1,33 @@
-import { useMemo, useState, useEffect } from 'react';
+import { useMemo, useState, useEffect, useRef } from 'react';
+import { motion, useInView } from 'framer-motion';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+
+
+import {
+  faArrowUpRightFromSquare,
+  faBrain,
+  faChartLine,
+  faCode,
+  faDatabase,
+  faEnvelope,
+  faLocationDot,
+  faPaperPlane,
+  faPhone,
+} from '@fortawesome/free-solid-svg-icons';
+import { faGithub as faGithubBrand, faLinkedinIn } from '@fortawesome/free-brands-svg-icons';
+
+const fadeInUp = {
+  hidden: { opacity: 0, y: 30 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: 'easeOut' } }
+};
+
+const staggerContainer = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: { staggerChildren: 0.15 }
+  }
+};
 
 const apiBase = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000/api';
 
@@ -51,37 +80,83 @@ const defaultPortfolio = {
       category: 'IA générative',
       description: 'Conception et développement d’une solution d’IA générative capable de produire des résumés et interprétations de projets de loi adaptés à différents publics.',
       technologies: ['Python', 'Generative AI', 'Machine Learning', 'NLP', 'LLM', 'Prompt Engineering'],
-      link: '#',
+      link: 'https://github.com/soro-gif',
+      image:
+        'https://images.unsplash.com/photo-1677442136019-21780ecad995?auto=format&fit=crop&w=1200&q=80',
     },
     {
       title: 'NeuroCodeurs',
       category: 'Hackathon IA',
       description: 'Système intelligent de génération de contenu personnalisé basé sur l’intelligence artificielle.',
       technologies: ['Python', 'Generative AI', 'Machine Learning', 'Data Analysis', 'Data Visualization', 'EDA', 'Git', 'GitHub'],
-      link: '#',
+      link: 'https://github.com/soro-gif',
+      image:
+        'https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&w=1200&q=80',
     },
     {
       title: 'Site e-commerce de vente de vêtements',
       category: 'Laravel / E-commerce',
       description: 'Conception et développement d’un site e-commerce de vente de vêtements avec Laravel.',
       technologies: ['Laravel', 'Blade', 'JavaScript', 'Bootstrap CSS', 'PHP', 'MySQL'],
-      link: '#',
+      link: 'https://github.com/soro-gif',
+      image:
+        'https://images.unsplash.com/photo-1524758631624-e2822e304c36?auto=format&fit=crop&w=1200&q=80',
     },
     {
       title: 'Application de gestion de garage',
       category: 'Gestion d’entreprise',
       description: 'Application web de gestion de garage et de véhicules avec Laravel.',
       technologies: ['Laravel', 'Blade', 'PHP', 'MySQL', 'HTML/CSS'],
-      link: '#',
+      link: 'https://github.com/soro-gif',
+      image:
+        'https://images.unsplash.com/photo-1552664730-d307ca884978?auto=format&fit=crop&w=1200&q=80',
     },
   ],
 };
 
+function AnimatedNumber({ value }) {
+  const [count, setCount] = useState(0);
+  const ref = useRef(null);
+  const isInView = useInView(ref, { once: true, amount: 0.5 });
+  
+  useEffect(() => {
+    const match = String(value).match(/^(\d+)(.*)$/);
+    if (!match || !isInView) return;
+    
+    const target = parseInt(match[1], 10);
+    const duration = 1000; // 1 second
+    const fps = 60;
+    const steps = duration / (1000 / fps);
+    const increment = target / steps;
+    
+    let current = 0;
+    const timer = setInterval(() => {
+      current += increment;
+      if (current >= target) {
+        setCount(target);
+        clearInterval(timer);
+      } else {
+        setCount(Math.floor(current));
+      }
+    }, 1000 / fps);
+    
+    return () => clearInterval(timer);
+  }, [value, isInView]);
+
+  const match = String(value).match(/^(\d+)(.*)$/);
+  if (!match) {
+    return <strong>{value}</strong>;
+  }
+
+  return <strong ref={ref}>{count}{match[2]}</strong>;
+}
+
 function App() {
   const [portfolio, setPortfolio] = useState(defaultPortfolio);
   const [loading, setLoading] = useState(true);
-  const [form, setForm] = useState({ name: '', email: '', message: '' });
+  const [form, setForm] = useState({ name: '', email: '', subject: '', message: '' });
   const [status, setStatus] = useState(null);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   useEffect(() => {
     const fetchPortfolio = async () => {
@@ -115,6 +190,14 @@ function App() {
     []
   );
 
+  const navItems = [
+    { label: 'À propos', href: '#about' },
+    { label: 'Compétences', href: '#skills' },
+    { label: 'Expérience', href: '#experience' },
+    { label: 'Projets', href: '#projects' },
+    { label: 'Contact', href: '#contact', mobileOnly: true },
+  ];
+
   const handleChange = (event) => {
     const { name, value } = event.target;
     setForm((prev) => ({ ...prev, [name]: value }));
@@ -127,7 +210,10 @@ function App() {
     try {
       const response = await fetch(`${apiBase}/contact`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
         body: JSON.stringify(form),
       });
 
@@ -138,7 +224,7 @@ function App() {
       }
 
       setStatus({ type: 'success', message: data.message });
-      setForm({ name: '', email: '', message: '' });
+      setForm({ name: '', email: '', subject: '', message: '' });
     } catch (error) {
       setStatus({ type: 'error', message: error.message || 'Une erreur est survenue.' });
     }
@@ -147,22 +233,52 @@ function App() {
   return (
     <div className="page-shell">
       <header className="topbar">
-        <div className="container nav">
-          <div className="brand">SORO</div>
-          <nav>
-            <a href="#about">À propos</a>
-            <a href="#skills">Compétences</a>
-            <a href="#experience">Expérience</a>
-            <a href="#projects">Projets</a>
-            <a href="#contact">Contact</a>
+        <div className="container nav-shell">
+          <div className="brand-block">
+            <div className="brand">SORO</div>
+            <span className="brand-tag">Data & IA</span>
+          </div>
+
+          <button
+            type="button"
+            className="nav-toggle"
+            aria-label="Ouvrir le menu"
+            onClick={() => setMobileMenuOpen((prev) => !prev)}
+          >
+            <span className={mobileMenuOpen ? 'open' : ''} />
+            <span className={mobileMenuOpen ? 'open' : ''} />
+            <span className={mobileMenuOpen ? 'open' : ''} />
+          </button>
+
+          <nav className={`nav ${mobileMenuOpen ? 'open' : ''}`}>
+            {navItems.map((item) => (
+              <a 
+                key={item.href} 
+                href={item.href} 
+                className={item.mobileOnly ? 'mobile-only-link' : ''}
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                {item.label}
+              </a>
+            ))}
           </nav>
+
+          <a className="nav-cta" href="#contact">
+            Me contacter
+          </a>
         </div>
       </header>
 
       <main>
-        <section className="hero">
+        <motion.section 
+          className="hero"
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, amount: 0.2 }}
+          variants={staggerContainer}
+        >
           <div className="container hero-grid">
-            <div>
+            <motion.div variants={fadeInUp}>
               <p className="eyebrow">Data Scientist / Développeur IA</p>
               <h1>{profile.name}</h1>
               <h2>{profile.title}</h2>
@@ -170,18 +286,40 @@ function App() {
               <div className="cta-row">
                 <a className="btn btn-primary" href="#projects">Voir mes projets</a>
                 <a className="btn btn-secondary" href={`mailto:${profile.email}`}>Me contacter</a>
+                <a className="btn btn-secondary" href="/CV.pdf" download>
+                  Télécharger le CV
+                </a>
               </div>
 
               <div className="mini-links">
-                <a href={profile.github} target="_blank" rel="noreferrer">GitHub</a>
-                <a href={profile.linkedin} target="_blank" rel="noreferrer">LinkedIn</a>
-                <span>{profile.location}</span>
-                <span>{profile.phone}</span>
+                <a href={profile.github} target="_blank" rel="noreferrer">
+                  <FontAwesomeIcon icon={faGithubBrand} /> GitHub
+                </a>
+                <a href={profile.linkedin} target="_blank" rel="noreferrer">
+                  <FontAwesomeIcon icon={faLinkedinIn} /> LinkedIn
+                </a>
+                <span>
+                  <FontAwesomeIcon icon={faLocationDot} /> {profile.location}
+                </span>
+                <span>
+                  <FontAwesomeIcon icon={faPhone} /> {profile.phone}
+                </span>
               </div>
-            </div>
+            </motion.div>
 
-            <div className="profile-card">
-              <div className="avatar">SL</div>
+            <motion.div className="profile-card" variants={fadeInUp}>
+              <div className="illustration-frame">
+                <img
+                  src="/profile.png"
+                  alt="Photo de profil de SORO Lamoussa"
+                />
+              </div>
+
+              <div className="mini-visual-badge">
+                <FontAwesomeIcon icon={faChartLine} />
+                <span>AI & Data</span>
+              </div>
+
               <div className="card-grid">
                 <div>
                   <small>Localisation</small>
@@ -200,28 +338,41 @@ function App() {
                   <strong>GenAI / Data</strong>
                 </div>
               </div>
-            </div>
+            </motion.div>
           </div>
-        </section>
+        </motion.section>
 
-        <section className="stats">
+        <motion.section 
+          className="stats"
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, amount: 0.2 }}
+          variants={staggerContainer}
+        >
           <div className="container stats-grid">
             {statCards.map((item) => (
-              <div key={item.label} className="stat-card">
-                <strong>{item.value}</strong>
+              <motion.div key={item.label} className="stat-card" variants={fadeInUp}>
+                <AnimatedNumber value={item.value} />
                 <span>{item.label}</span>
-              </div>
+              </motion.div>
             ))}
           </div>
-        </section>
+        </motion.section>
 
-        <section id="about" className="section">
+        <motion.section 
+          id="about" 
+          className="section"
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, amount: 0.2 }}
+          variants={staggerContainer}
+        >
           <div className="container section-grid">
-            <div>
+            <motion.div variants={fadeInUp}>
               <p className="section-kicker">À propos</p>
               <h3>Je transforme les données en solutions utiles et intelligentes.</h3>
-            </div>
-            <div>
+            </motion.div>
+            <motion.div variants={fadeInUp}>
               <p>
                 Je suis un Data Scientist et développeur IA passionné par la création de solutions qui allient
                 analyse de données, apprentissage automatique, intelligence artificielle générative et
@@ -231,18 +382,25 @@ function App() {
                 Mon expertise couvre le développement web Laravel et React.js, la gestion de bases de données
                 MySQL, le traitement du langage naturel et les architectures RAG/LLM.
               </p>
-            </div>
+            </motion.div>
           </div>
-        </section>
+        </motion.section>
 
-        <section id="skills" className="section alt-section">
+        <motion.section 
+          id="skills" 
+          className="section alt-section"
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, amount: 0.2 }}
+          variants={staggerContainer}
+        >
           <div className="container">
-            <p className="section-kicker">Compétences</p>
-            <h3>Technologies et domaines d’expertise</h3>
+            <motion.p className="section-kicker" variants={fadeInUp}>Compétences</motion.p>
+            <motion.h3 variants={fadeInUp}>Technologies et domaines d’expertise</motion.h3>
 
-            <div className="skills-grid">
+            <motion.div className="skills-grid" variants={staggerContainer}>
               {Object.entries(skills).map(([group, values]) => (
-                <div key={group} className="skill-card">
+                <motion.div key={group} className="skill-card" variants={fadeInUp}>
                   <h4>{group}</h4>
                   <div className="tags">
                     {values.map((value) => (
@@ -251,20 +409,27 @@ function App() {
                       </span>
                     ))}
                   </div>
-                </div>
+                </motion.div>
               ))}
-            </div>
+            </motion.div>
           </div>
-        </section>
+        </motion.section>
 
-        <section id="experience" className="section">
+        <motion.section 
+          id="experience" 
+          className="section"
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, amount: 0.2 }}
+          variants={staggerContainer}
+        >
           <div className="container">
-            <p className="section-kicker">Expérience</p>
-            <h3>Parcours professionnel</h3>
+            <motion.p className="section-kicker" variants={fadeInUp}>Expérience</motion.p>
+            <motion.h3 variants={fadeInUp}>Parcours professionnel</motion.h3>
 
-            <div className="timeline">
+            <motion.div className="timeline" variants={staggerContainer}>
               {experiences.map((item) => (
-                <div key={`${item.role}-${item.company}`} className="timeline-item">
+                <motion.div key={`${item.role}-${item.company}`} className="timeline-item" variants={fadeInUp}>
                   <div className="timeline-dot" />
                   <div className="timeline-content">
                     <div className="timeline-header">
@@ -274,20 +439,30 @@ function App() {
                     <p className="company-name">{item.company} • {item.location}</p>
                     <p>{item.description}</p>
                   </div>
-                </div>
+                </motion.div>
               ))}
-            </div>
+            </motion.div>
           </div>
-        </section>
+        </motion.section>
 
-        <section id="projects" className="section alt-section">
+        <motion.section 
+          id="projects" 
+          className="section alt-section"
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, amount: 0.1 }}
+          variants={staggerContainer}
+        >
           <div className="container">
-            <p className="section-kicker">Projets</p>
-            <h3>Réalisations marquantes</h3>
+            <motion.p className="section-kicker" variants={fadeInUp}>Projets</motion.p>
+            <motion.h3 variants={fadeInUp}>Réalisations marquantes</motion.h3>
 
-            <div className="projects-grid">
+            <motion.div className="projects-grid" variants={staggerContainer}>
               {projects.map((project) => (
-                <article key={project.title} className="project-card">
+                <motion.article key={project.title} className="project-card" variants={fadeInUp}>
+                  <div className="project-image-wrap">
+                    <img src={project.image} alt={project.title} className="project-image" />
+                  </div>
                   <div className="project-header">
                     <span className="project-tag">{project.category}</span>
                   </div>
@@ -298,16 +473,25 @@ function App() {
                       <span key={tech} className="tag small-tag">{tech}</span>
                     ))}
                   </div>
-                  <a href={project.link}>Voir le projet</a>
-                </article>
+                  <a href={project.link} target="_blank" rel="noreferrer" className="project-link">
+                    Voir le projet <FontAwesomeIcon icon={faArrowUpRightFromSquare} />
+                  </a>
+                </motion.article>
               ))}
-            </div>
+            </motion.div>
           </div>
-        </section>
+        </motion.section>
 
-        <section id="contact" className="section contact-section">
+        <motion.section 
+          id="contact" 
+          className="section contact-section"
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, amount: 0.2 }}
+          variants={staggerContainer}
+        >
           <div className="container contact-grid">
-            <div>
+            <motion.div variants={fadeInUp}>
               <p className="section-kicker">Contact</p>
               <h3>Travaillons ensemble sur votre prochain projet.</h3>
               <p>
@@ -315,34 +499,46 @@ function App() {
                 Écrivez-moi et discutons de votre mission.
               </p>
               <ul className="contact-list">
-                <li>{profile.email}</li>
-                <li>{profile.phone}</li>
-                <li>{profile.location}</li>
+                <li>
+                  <FontAwesomeIcon icon={faEnvelope} /> {profile.email}
+                </li>
+                <li>
+                  <FontAwesomeIcon icon={faPhone} /> {profile.phone}
+                </li>
+                <li>
+                  <FontAwesomeIcon icon={faLocationDot} /> {profile.location}
+                </li>
               </ul>
-            </div>
+            </motion.div>
 
-            <form className="contact-form" onSubmit={handleSubmit}>
+            <motion.form className="contact-form" onSubmit={handleSubmit} variants={fadeInUp}>
               <label>
                 Nom
-                <input type="text" name="name" value={form.name} onChange={handleChange} required />
+                <input type="text" name="name" placeholder="Votre nom complet" value={form.name} onChange={handleChange} required />
               </label>
               <label>
                 Email
-                <input type="email" name="email" value={form.email} onChange={handleChange} required />
+                <input type="email" name="email" placeholder="vous@exemple.com" value={form.email} onChange={handleChange} required />
+              </label>
+              <label>
+                Objet
+                <input type="text" name="subject" placeholder="Sujet de votre message" value={form.subject} onChange={handleChange} required />
               </label>
               <label>
                 Message
-                <textarea name="message" rows="5" value={form.message} onChange={handleChange} required />
+                <textarea name="message" rows="5" placeholder="Comment puis-je vous aider ?" value={form.message} onChange={handleChange} required />
               </label>
 
-              <button type="submit" className="btn btn-primary">Envoyer le message</button>
+              <button type="submit" className="btn btn-primary">
+                <FontAwesomeIcon icon={faPaperPlane} /> Envoyer le message
+              </button>
 
               {status && (
                 <p className={`form-status ${status.type}`}>{status.message}</p>
               )}
-            </form>
+            </motion.form>
           </div>
-        </section>
+        </motion.section>
       </main>
 
       <footer className="footer">
