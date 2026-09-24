@@ -47,6 +47,7 @@ button, input, textarea {
 
 .page-shell {
   min-height: 100vh;
+  padding-top: 78px; /* height of topbar */
 }
 
 .container {
@@ -55,8 +56,10 @@ button, input, textarea {
 }
 
 .topbar {
-  position: sticky;
+  position: fixed;
   top: 0;
+  left: 0;
+  right: 0;
   z-index: 50;
   backdrop-filter: blur(16px);
   background: rgba(245, 243, 239, 0.8);
